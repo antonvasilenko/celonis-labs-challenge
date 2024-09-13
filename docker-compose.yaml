@@ -1,0 +1,44 @@
+version: "3"
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: 'bitnami/kafka:latest'
+    ports:
+      - '9093:9093'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_LISTENERS=LOCAL://kafka:9093,REMOTE://kafka:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=LOCAL:PLAINTEXT,REMOTE:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LOCAL://localhost:9093,REMOTE://kafka:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_INTER_BROKER_LISTENER_NAME=REMOTE
+    depends_on:
+      - zookeeper
+  mongodb:
+    image: 'mongo:latest'
+    ports:
+      - "27017:27017"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+  contact-service:
+    build: contact-service/
+    command: 
+     - "--kafka.bootstrapServer=kafka:9092" 
+     - "--spring.data.mongodb.host=mongodb" 
+     - "--spring.data.mongodb.port=27017"
+     - "--api.maxArtificialLatency=0"
+     - "--dataload.numberOfPersons=10"
+     - "--spring.profiles.active=kafka"
+    ports:
+      - 8080:8080
+    depends_on:
+      - zookeeper
+      - kafka
+      - mongodb
+

@@ -4,7 +4,7 @@ Subscribe to all topics:
 ./kafka.sh kafka-console-consumer --whitelist 'personevents-created|personevents-changed|personevents-deleted'  --from-beginning
 
 
-Findouts:
+### Findouts:
 contact-service
   PUT person/id
     updates the entity, full replace, sets null if prop is absent in request.
@@ -34,7 +34,7 @@ Order relates to Person via soldTo, billTo, shipTo.
 Those are not normalized and have full props of Person, including ID.
 
 
-TODOS:
+#### TODOS:
 [x] Learn existing solution
 [x] Test contract-service api
 [x] bootstrap order service, setup TS, add express server
@@ -47,11 +47,22 @@ TODOS:
 
 
 
-ASSUMPTIONS:
+### ASSUMPTIONS:
 1. For the created order, person objects should not be updated if person is updated in contact service, as those have historical value.
 2. 
 
-DECISIONS:
+### DECISIONS:
 1. On order creation, fail creating order if persons were not resolved, otherwise order will miss critical information to be performed, like delivery address, billing info.
 2. Implement retries for orderService/services/contactService.getPerson() with backoff.
-3. Forbid updating ersons in order. Workaround - cancel order, create new one.
+3. Forbid updating persons in order. Workaround - cancel order, create new one.
+
+
+### Handling Latency of Contact Service:
+1. Current implementation: handle timeout, store partial person object (just id).
+2. Better: implement retry with backoff delay, 500ms, 1s, 5s, etc
+3. Put retry command in a queue with a longer delay, e.g. 30s, 5m, 60m. This will mitigate load peaks.
+  For client, those cases might be separated by returned status code:
+    * 201 Created - when order created instantly, person lookups successful;
+    * 202 Accepted - order is accepted but not yet fully created.
+
+2 and 3 favor performance and availability over consistency. Targeting eventual consistency.

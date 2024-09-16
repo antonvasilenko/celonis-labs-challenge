@@ -38,10 +38,10 @@ Those are not normalized and have full props of Person, including ID.
 [x] Learn existing solution
 [x] Test contract-service api
 [x] bootstrap order service, setup TS, add express server
-[ ] add mongo connection and mongoose schema
+[x] add mongo connection and mongoose schema
 [ ] complete api crud logic up to the db
-[ ] error handling
-[ ] latency handling
+[x] error handling
+[x] latency handling
 [ ] include new service in docker compose
 [ ] subscribe to events from kafka streams, dummy handlers
 
@@ -57,12 +57,23 @@ Those are not normalized and have full props of Person, including ID.
 3. Forbid updating persons in order. Workaround - cancel order, create new one.
 
 
-### Handling Latency of Contact Service:
+### Task 2.
+
+#### Handling Latency of Contact Service:
 1. Current implementation: handle timeout, store partial person object (just id).
 2. Better: implement retry with backoff delay, 500ms, 1s, 5s, etc
+  (use smth like ts-retry-promise, all config possible)
 3. Put retry command in a queue with a longer delay, e.g. 30s, 5m, 60m. This will mitigate load peaks.
   For client, those cases might be separated by returned status code:
     * 201 Created - when order created instantly, person lookups successful;
     * 202 Accepted - order is accepted but not yet fully created.
 
 2 and 3 favor performance and availability over consistency. Targeting eventual consistency.
+Generally in error handling we should separate cases when it makes sense to retry and when it does not, leading 2 code flows: either saving order somehow (even partially) or not saving and returning an error th the client.
+
+### Tests
+I would recommend the following test suits:
+* Unit tests for api layer while mocking domains - to check request /response formats
+* Unit tests for domain layer while mocking services and db - to check business logic
+* No tests for db and services - they should be kept thin and simple
+* Integration tests from api level (supertest with given express app instance) - to check full flow. Mock only 3rd party http calls, i.e. services layer. Use mongodb-memory-server for db.

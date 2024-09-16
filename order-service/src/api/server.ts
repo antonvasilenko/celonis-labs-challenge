@@ -1,14 +1,12 @@
 // src/app.ts
-import express, { Express, Request, Response, NextFunction } from 'express';
-import ordersApi from './v1/order';
+import { Request, Response, NextFunction } from 'express';
+import { zodiosApp } from '@zodios/express';
+import ordersRouter from './v1/order';
 
-const createApp = (): Express => {
-  const app = express();
+const createApp = () => {
+  const app = zodiosApp();
 
-  // Middleware to parse JSON request bodies
-  app.use(express.json());
-  // handle /order in orders.ts
-  app.use('/api/v1/order', ordersApi(express.Router()));
+  app.use(ordersRouter);
 
   // Middleware to handle unhandled routes (404)
   app.use((req: Request, res: Response) => {

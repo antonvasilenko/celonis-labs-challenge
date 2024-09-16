@@ -1,6 +1,7 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Types, Document } from 'mongoose';
 
-export interface OrderPerson extends Document {
+export interface OrderPerson {
+  id: string;
   firstName?: string;
   lastName?: string;
   streetAddress?: string;
@@ -8,14 +9,27 @@ export interface OrderPerson extends Document {
   zip?: string;
   city?: string;
   country?: string;
-  extensionFields?: object;
+  extensionFields?: Record<string, unknown>;
 }
 
-export interface OrderItem extends Document {
+export interface OrderItem {
   itemID: string;
   productID: string;
   quantity: number;
   itemPrice: number;
+}
+
+export interface Order extends Document<Types.ObjectId> {
+  soldTo: OrderPerson;
+  billTo: OrderPerson;
+  shipTo: OrderPerson;
+  orderValue: number;
+  taxValue: number;
+  currencyCode: string;
+  items: OrderItem[];
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const OrderPersonSchema: Schema = new Schema<OrderPerson>(
@@ -42,17 +56,9 @@ const OrderItemSchema: Schema = new Schema<OrderItem>(
   { id: false },
 );
 
-export interface Order extends Document {
-  soldTo: OrderPerson;
-  billTo: OrderPerson;
-  shipTo: OrderPerson;
-  orderValue: number;
-  taxValue?: number;
-  currencyCode?: string;
-  items: OrderItem[];
-}
+export type OrderDocument = Order & { _id: mongoose.Types.ObjectId };
 
-const OrderSchema: Schema = new Schema<Order>(
+const OrderSchema = new Schema<Order>(
   {
     soldTo: { type: OrderPersonSchema },
     billTo: { type: OrderPersonSchema },
@@ -65,5 +71,5 @@ const OrderSchema: Schema = new Schema<Order>(
   { timestamps: true },
 );
 
-const Order = mongoose.model<Order>('Order', OrderSchema);
+const Order = mongoose.model<Order>('Order', OrderSchema, 'orders');
 export default Order;

@@ -42,7 +42,7 @@ Those are not normalized and have full props of Person, including ID.
 [ ] complete api crud logic up to the db
 [x] error handling
 [x] latency handling
-[ ] include new service in docker compose
+[x] include new service in docker compose
 [ ] subscribe to events from kafka streams, dummy handlers
 
 
@@ -55,14 +55,15 @@ Those are not normalized and have full props of Person, including ID.
 1. On order creation, fail creating order if persons were not resolved, otherwise order will miss critical information to be performed, like delivery address, billing info.
 2. Implement retries for orderService/services/contactService.getPerson() with backoff.
 3. Forbid updating persons in order. Workaround - cancel order, create new one.
+4. Implementation for other endpoints of order service were skipped as they are straightforward and in no way help solving the core task.
 
 
 ### Task 2.
 
 #### Handling Latency of Contact Service:
-1. Current implementation: handle timeout, store partial person object (just id).
-2. Better: implement retry with backoff delay, 500ms, 1s, 5s, etc
-  (use smth like ts-retry-promise, all config possible)
+1. Simplest implementation: handle timeout, store partial person object (just id). Fail only in case of not found.
+2. Current implementation: retry with 200ms delay in case of timeout or unknown error.
+   Optionally: use linear backoff to not overload contact service.
 3. Put retry command in a queue with a longer delay, e.g. 30s, 5m, 60m. This will mitigate load peaks.
   For client, those cases might be separated by returned status code:
     * 201 Created - when order created instantly, person lookups successful;

@@ -1,4 +1,5 @@
 // contains business logic related to orders
+import { retryDecorator } from 'ts-retry-promise';
 import OrderModel from '../models/order';
 import { InputOrderDto, OrderDto, PersonDto } from '../api/v1/dto';
 import contactService, { NotFoundError } from '../services/contactService';
@@ -7,14 +8,21 @@ import contactService, { NotFoundError } from '../services/contactService';
 // have no connections to api layer and express
 // does know about DTOs and entities
 
+const getPersonWithRetry = retryDecorator(contactService.getPerson, {
+  retries: 3,
+  delay: 200,
+  retryIf: (error) => !(error instanceof NotFoundError),
+});
+
 // Note: api PersonDto and contactService.Person are equal
 const getPerson = async (personID: string): Promise<PersonDto> => {
   try {
-    return await contactService.getPerson(personID);
+    return await getPersonWithRetry(personID);
   } catch (error) {
     if (error instanceof NotFoundError) {
       throw error;
     }
+    console.log('Error in getPerson', error);
     // if TimeoutError
     // 2. in-place retry
     return {

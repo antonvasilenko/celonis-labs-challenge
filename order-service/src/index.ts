@@ -5,7 +5,7 @@ import config from './config';
 connectDb()
   .then(() => {
     createApp().listen(config.server.port, () => {
-      console.log(`Order Service listening at http://localhost:${config.server.port}`);
+      console.log(`Order Service listening at port ${config.server.port}`);
     });
   })
   .catch((error) => {

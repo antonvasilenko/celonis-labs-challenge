@@ -1,9 +1,9 @@
 {
   "name": "order-service",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist/ && tsc",
     "start": "node dist/index.js",
     "serve": "nodemon",
     "lint": "eslint 'src/**/*.ts'",
@@ -19,12 +19,17 @@
     "@zodios/express": "^10.6.1",
     "express": "^4.21.0",
     "mongoose": "^8.6.2",
+    "swagger-ui-express": "^5.0.1",
+    "ts-retry-promise": "^0.8.1",
+    "yamljs": "^0.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^22.5.4",
+    "@types/swagger-ui-express": "^4.1.6",
+    "@types/yamljs": "^0.2.34",
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "@typescript-eslint/parser": "^8.5.0",
     "eslint": "^8.57.0",

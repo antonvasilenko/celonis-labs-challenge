@@ -32,11 +32,22 @@ services:
      - "--kafka.bootstrapServer=kafka:9092" 
      - "--spring.data.mongodb.host=mongodb" 
      - "--spring.data.mongodb.port=27017"
-     - "--api.maxArtificialLatency=0"
+     - "--api.maxArtificialLatency=4"
      - "--dataload.numberOfPersons=10"
      - "--spring.profiles.active=kafka"
     ports:
       - 8080:8080
+    depends_on:
+      - zookeeper
+      - kafka
+      - mongodb
+  order-service:
+    build: order-service/
+    environment:
+      - CONTACT_SERVICE_URL=http://contact-service:8080
+      - MONGO_URL=mongodb://mongodb:27017/order-service
+    ports:
+      - 8081:8080
     depends_on:
       - zookeeper
       - kafka

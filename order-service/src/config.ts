@@ -1,6 +1,13 @@
+console.log(
+  'envs',
+  process.env.NODE_PORT,
+  process.env.CONTACT_SERVICE_URL,
+  process.env.MONGO_URL,
+  process.env.SPEC_FILE,
+);
 export default {
   server: {
-    port: process.env.NODE_PORT || 8081,
+    port: Number.parseInt(process.env.NODE_PORT as string) || 8081,
   },
   contractServiceUrl: process.env.CONTACT_SERVICE_URL || 'http://localhost:8080',
   mongo: {

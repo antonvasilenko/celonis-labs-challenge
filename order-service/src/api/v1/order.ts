@@ -32,7 +32,7 @@ export const ordersApi = makeApi([
     path: '/api/v1/order',
     description: `This function deletes all orders.`,
     requestFormat: 'json',
-    response: dto.Order,
+    response: z.object({}),
   },
   {
     method: 'get',
@@ -73,7 +73,7 @@ export const ordersApi = makeApi([
       {
         name: 'body',
         type: 'Body',
-        schema: dto.InputOrder,
+        schema: dto.UpdateOrder,
       },
       {
         name: 'orderID',
@@ -86,6 +86,13 @@ export const ordersApi = makeApi([
       {
         status: 404,
         description: 'Person not found',
+        schema: z.object({
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: 'Internal server error',
         schema: z.object({
           message: z.string(),
         }),
@@ -170,6 +177,21 @@ router.post('/api/v1/order', async (req, res) => {
   res.status(200).json(dto.Order.parse(createdOrder));
 });
 
+router.put('/api/v1/order/:orderID', async (req, res) => {
+  const orderID = req.params.orderID;
+  const order = req.body;
+  try {
+    const updatedOrder = await orderDomain.updateOrder(orderID, order);
+    return res.status(200).json(dto.Order.parse(updatedOrder));
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ message: `Order with id '${orderID}' not found` });
+    }
+    console.log('Error updating order', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 router.delete('/api/v1/order/:orderID', async (req, res) => {
   const orderID = req.params.orderID;
   try {
@@ -182,6 +204,11 @@ router.delete('/api/v1/order/:orderID', async (req, res) => {
     console.log('Error deleting order', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
+});
+
+router.delete('/api/v1/order', async (req, res) => {
+  await orderDomain.deleteOrders();
+  res.status(200).json({});
 });
 
 export default router;

@@ -39,7 +39,7 @@ Those are not normalized and have full props of Person, including ID.
 [x] Test contract-service api
 [x] bootstrap order service, setup TS, add express server
 [x] add mongo connection and mongoose schema
-[ ] complete api crud logic up to the db
+[x] complete api crud logic up to the db
 [x] error handling
 [x] latency handling
 [x] include new service in docker compose
@@ -56,7 +56,7 @@ Those are not normalized and have full props of Person, including ID.
 1. On order creation, fail creating order if persons were not resolved, otherwise order will miss critical information to be performed, like delivery address, billing info.
 2. Implement retries for orderService/services/contactService.getPerson() with backoff.
 3. Forbid updating persons in order. Workaround - cancel order, create new one.
-4. Implementation for other endpoints of order service were skipped as they are straightforward and in no way help solving the core task.
+4. Patch order endpoint skipped as found no difference with PUT order
 
 
 ### Task 2.

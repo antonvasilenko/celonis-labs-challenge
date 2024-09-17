@@ -45,14 +45,23 @@ const InputOrderDtoSchema = z.object({
   items: z.array(OrderItemDtoSchema),
 });
 
+const UpdateOrderDtoSchema = z.object({
+  orderValue: z.number(),
+  taxValue: z.number(),
+  currencyCode: z.string(),
+  items: z.array(OrderItemDtoSchema),
+});
+
 export const dto = {
   Person: PersonDtoSchema,
   OrderItem: OrderItemDtoSchema,
   Order: OrderDtoSchema,
   InputOrder: InputOrderDtoSchema,
+  UpdateOrder: UpdateOrderDtoSchema,
 };
 
 export type PersonDto = z.infer<typeof PersonDtoSchema>;
 export type OrderItemdDto = z.infer<typeof OrderItemDtoSchema>;
 export type OrderDto = z.infer<typeof OrderDtoSchema>;
 export type InputOrderDto = z.infer<typeof InputOrderDtoSchema>;
+export type UpdateOrderDto = z.infer<typeof UpdateOrderDtoSchema>;

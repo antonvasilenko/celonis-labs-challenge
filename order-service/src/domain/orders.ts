@@ -1,7 +1,7 @@
 // contains business logic related to orders
 import { retryDecorator } from 'ts-retry-promise';
 import OrderModel from '../models/order';
-import { InputOrderDto, OrderDto, PersonDto } from '../api/v1/dto';
+import { InputOrderDto, OrderDto, PersonDto, UpdateOrderDto } from '../api/v1/dto';
 import contactService from '../services/contactService';
 import { NotFoundError } from '../errors';
 
@@ -43,6 +43,10 @@ const deleteOrder = async (orderID: string): Promise<OrderDto> => {
   };
 };
 
+const deleteOrders = async (): Promise<void> => {
+  await OrderModel.deleteMany();
+};
+
 const getPersonWithRetry = retryDecorator(contactService.getPerson, {
   retries: 3,
   delay: 200,
@@ -70,12 +74,10 @@ const createOrder = async (inputOrder: InputOrderDto): Promise<OrderDto> => {
   const { orderValue, taxValue = null, currencyCode = null, items, ...rest } = inputOrder;
 
   try {
-    console.log('Creating order', rest);
     // TODO avoid extra calls in case ids are the same
     const soldTo = await getPerson(rest.soldToID);
     const billTo = await getPerson(rest.billToID);
     const shipTo = await getPerson(rest.shipToID);
-    console.log('Creating order', soldTo, billTo, shipTo);
     const orderData = {
       orderValue,
       taxValue,
@@ -101,9 +103,38 @@ const createOrder = async (inputOrder: InputOrderDto): Promise<OrderDto> => {
   }
 };
 
+const updateOrder = async (orderID: string, inputOrder: UpdateOrderDto): Promise<OrderDto> => {
+  // prevent updating persons (personIDs)
+  const { orderValue, taxValue, currencyCode, items } = inputOrder;
+  const foundOrder = await OrderModel.findById(orderID);
+  if (!foundOrder) {
+    throw new NotFoundError(orderID);
+  }
+  const updatedOrder = await OrderModel.findByIdAndUpdate(
+    orderID,
+    {
+      orderValue,
+      taxValue,
+      currencyCode,
+      items,
+    },
+    { new: true, lean: true },
+  );
+  if (!updatedOrder) {
+    throw new NotFoundError(orderID);
+  }
+  return {
+    ...updatedOrder,
+    orderID: updatedOrder._id.toString(),
+    orderDate: updatedOrder.createdAt!.toISOString().split('T')[0],
+  };
+};
+
 export default {
   getOrders,
   getOrder,
   createOrder,
   deleteOrder,
+  deleteOrders,
+  updateOrder,
 };

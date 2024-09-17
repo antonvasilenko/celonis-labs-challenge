@@ -32,7 +32,7 @@ export const ordersApi = makeApi([
     path: '/api/v1/order',
     description: `This function deletes all orders.`,
     requestFormat: 'json',
-    response: z.object({}),
+    response: z.array(z.never()),
   },
   {
     method: 'get',
@@ -208,7 +208,7 @@ router.delete('/api/v1/order/:orderID', async (req, res) => {
 
 router.delete('/api/v1/order', async (req, res) => {
   await orderDomain.deleteOrders();
-  res.status(200).json({});
+  res.status(200).json([]);
 });
 
 export default router;

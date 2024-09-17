@@ -57,6 +57,7 @@ Those are not normalized and have full props of Person, including ID.
 2. Implement retries for orderService/services/contactService.getPerson() with backoff.
 3. Forbid updating persons in order. Workaround - cancel order, create new one.
 4. Patch order endpoint skipped as found no difference with PUT order
+5. Delete orders response doc was misleading, thus decided to return 200 & empty array.
 
 
 ### Task 2.

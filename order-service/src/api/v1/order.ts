@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { zodiosRouter } from '@zodios/express';
 import orderDomain from '../../domain/orders';
 import { dto } from './dto';
+import { NotFoundError } from '../../errors';
 
 export const ordersApi = makeApi([
   {
@@ -46,6 +47,22 @@ export const ordersApi = makeApi([
       },
     ],
     response: dto.Order,
+    errors: [
+      {
+        status: 404,
+        description: 'Person not found',
+        schema: z.object({
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: 'Internal server error',
+        schema: z.object({
+          message: z.string(),
+        }),
+      },
+    ],
   },
   {
     method: 'put',
@@ -65,6 +82,15 @@ export const ordersApi = makeApi([
       },
     ],
     response: dto.Order,
+    errors: [
+      {
+        status: 404,
+        description: 'Person not found',
+        schema: z.object({
+          message: z.string(),
+        }),
+      },
+    ],
   },
   {
     method: 'patch',
@@ -98,10 +124,41 @@ export const ordersApi = makeApi([
       },
     ],
     response: dto.Order,
+    errors: [
+      {
+        status: 404,
+        description: 'Person not found',
+        schema: z.object({
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: 'Internal server error',
+        schema: z.object({
+          message: z.string(),
+        }),
+      },
+    ],
   },
 ]);
 
 const router = zodiosRouter(ordersApi);
+
+router.get('/api/v1/order/:orderID', async (req, res) => {
+  const orderID = req.params.orderID;
+  console.log('orderID', orderID);
+  try {
+    const order = await orderDomain.getOrder(orderID);
+    return res.status(200).json(dto.Order.parse(order));
+  } catch (error) {
+    console.log('error', error);
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ message: `Order with id '${orderID}' not found` });
+    }
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 router.get('/api/v1/order', async (req, res) => {
   const orders = await orderDomain.getOrders();
@@ -112,6 +169,19 @@ router.post('/api/v1/order', async (req, res) => {
   const order = req.body;
   const createdOrder = await orderDomain.createOrder(order);
   res.status(200).json(dto.Order.parse(createdOrder));
+});
+
+router.delete('/api/v1/order/:orderID', async (req, res) => {
+  const orderID = req.params.orderID;
+  try {
+    const deletedOrder = await orderDomain.deleteOrder(orderID);
+    return res.status(200).json(dto.Order.parse(deletedOrder));
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ message: `Order with id '${orderID}' not found` });
+    }
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 export default router;

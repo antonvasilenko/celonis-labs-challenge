@@ -2,7 +2,8 @@
 import { retryDecorator } from 'ts-retry-promise';
 import OrderModel from '../models/order';
 import { InputOrderDto, OrderDto, PersonDto } from '../api/v1/dto';
-import contactService, { NotFoundError } from '../services/contactService';
+import contactService from '../services/contactService';
+import { NotFoundError } from '../errors';
 
 // Domain: Order
 // have no connections to api layer and express
@@ -16,6 +17,31 @@ const getOrders = (): Promise<OrderDto[]> => {
       orderDate: order.createdAt!.toISOString().split('T')[0],
     })),
   );
+};
+
+const getOrder = async (orderID: string): Promise<OrderDto> => {
+  const foundOrder = await OrderModel.findById(orderID).lean();
+  console.log('foundOrder', foundOrder);
+  if (!foundOrder) {
+    throw new NotFoundError(orderID);
+  }
+  return {
+    ...foundOrder,
+    orderID: foundOrder._id.toString(),
+    orderDate: foundOrder.createdAt!.toISOString().split('T')[0],
+  };
+};
+
+const deleteOrder = async (orderID: string): Promise<OrderDto> => {
+  const foundOrder = await OrderModel.findOneAndDelete({ _id: orderID }, { lean: true });
+  if (!foundOrder) {
+    throw new NotFoundError(orderID);
+  }
+  return {
+    ...foundOrder,
+    orderID: foundOrder._id.toString(),
+    orderDate: foundOrder.createdAt!.toISOString().split('T')[0],
+  };
 };
 
 const getPersonWithRetry = retryDecorator(contactService.getPerson, {
@@ -78,5 +104,7 @@ const createOrder = async (inputOrder: InputOrderDto): Promise<OrderDto> => {
 
 export default {
   getOrders,
+  getOrder,
   createOrder,
+  deleteOrder,
 };

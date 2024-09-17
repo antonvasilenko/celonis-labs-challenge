@@ -43,7 +43,8 @@ Those are not normalized and have full props of Person, including ID.
 [x] error handling
 [x] latency handling
 [x] include new service in docker compose
-[ ] subscribe to events from kafka streams, dummy handlers
+[ ] publish own events to kafka on create, update, delete
+[ ] subscribe to contact events from kafka streams, dummy handlers
 
 
 

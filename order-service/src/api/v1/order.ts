@@ -147,15 +147,14 @@ const router = zodiosRouter(ordersApi);
 
 router.get('/api/v1/order/:orderID', async (req, res) => {
   const orderID = req.params.orderID;
-  console.log('orderID', orderID);
   try {
     const order = await orderDomain.getOrder(orderID);
     return res.status(200).json(dto.Order.parse(order));
   } catch (error) {
-    console.log('error', error);
     if (error instanceof NotFoundError) {
       return res.status(404).json({ message: `Order with id '${orderID}' not found` });
     }
+    console.log('Error getting order', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -180,6 +179,7 @@ router.delete('/api/v1/order/:orderID', async (req, res) => {
     if (error instanceof NotFoundError) {
       return res.status(404).json({ message: `Order with id '${orderID}' not found` });
     }
+    console.log('Error deleting order', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 });

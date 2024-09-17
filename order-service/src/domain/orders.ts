@@ -21,7 +21,6 @@ const getOrders = (): Promise<OrderDto[]> => {
 
 const getOrder = async (orderID: string): Promise<OrderDto> => {
   const foundOrder = await OrderModel.findById(orderID).lean();
-  console.log('foundOrder', foundOrder);
   if (!foundOrder) {
     throw new NotFoundError(orderID);
   }

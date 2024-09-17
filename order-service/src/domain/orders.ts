@@ -8,6 +8,16 @@ import contactService, { NotFoundError } from '../services/contactService';
 // have no connections to api layer and express
 // does know about DTOs and entities
 
+const getOrders = (): Promise<OrderDto[]> => {
+  return OrderModel.find().then((orders) =>
+    orders.map((order) => ({
+      ...order.toObject(),
+      orderID: order._id.toString(),
+      orderDate: order.createdAt!.toISOString().split('T')[0],
+    })),
+  );
+};
+
 const getPersonWithRetry = retryDecorator(contactService.getPerson, {
   retries: 3,
   delay: 200,
@@ -67,5 +77,6 @@ const createOrder = async (inputOrder: InputOrderDto): Promise<OrderDto> => {
 };
 
 export default {
+  getOrders,
   createOrder,
 };

@@ -103,6 +103,11 @@ export const ordersApi = makeApi([
 
 const router = zodiosRouter(ordersApi);
 
+router.get('/api/v1/order', async (req, res) => {
+  const orders = await orderDomain.getOrders();
+  res.status(200).json(z.array(dto.Order).parse(orders));
+});
+
 router.post('/api/v1/order', async (req, res) => {
   const order = req.body;
   const createdOrder = await orderDomain.createOrder(order);

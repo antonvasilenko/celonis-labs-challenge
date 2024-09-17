@@ -43,7 +43,7 @@ const OrderPersonSchema: Schema = new Schema<OrderPerson>(
     country: { type: String },
     extensionFields: { type: Schema.Types.Mixed },
   },
-  { id: false },
+  { _id: false, id: false },
 );
 
 const OrderItemSchema: Schema = new Schema<OrderItem>(
@@ -53,7 +53,7 @@ const OrderItemSchema: Schema = new Schema<OrderItem>(
     quantity: { type: Number },
     itemPrice: { type: Number },
   },
-  { id: false },
+  { _id: false, id: false },
 );
 
 export type OrderDocument = Order & { _id: mongoose.Types.ObjectId };

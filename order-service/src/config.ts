@@ -1,10 +1,3 @@
-console.log(
-  'envs',
-  process.env.NODE_PORT,
-  process.env.CONTACT_SERVICE_URL,
-  process.env.MONGO_URL,
-  process.env.SPEC_FILE,
-);
 export default {
   server: {
     port: Number.parseInt(process.env.NODE_PORT as string) || 8081,

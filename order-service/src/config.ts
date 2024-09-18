@@ -6,4 +6,7 @@ export default {
   mongo: {
     url: process.env.MONGO_URL || 'mongodb://localhost:27017/order-service',
   },
+  kafka: {
+    brokerUrl: process.env.KAFKA_BROKER_URL || 'localhost:9093',
+  },
 };

@@ -4,6 +4,7 @@ import OrderModel from '../models/order';
 import { InputOrderDto, OrderDto, PersonDto, UpdateOrderDto } from '../api/v1/dto';
 import contactService from '../services/contactService';
 import { NotFoundError } from '../errors';
+import * as kafkaService from '../services/kafkaService';
 
 // Domain: Order
 // have no connections to api layer and express
@@ -36,6 +37,10 @@ const deleteOrder = async (orderID: string): Promise<OrderDto> => {
   if (!foundOrder) {
     throw new NotFoundError(orderID);
   }
+  // no await on purpose
+  kafkaService.sendOrderDeletedEvent(orderID).catch((error: Error) => {
+    console.error('Error sending order deleted event', error);
+  });
   return {
     ...foundOrder,
     orderID: foundOrder._id.toString(),
@@ -45,6 +50,7 @@ const deleteOrder = async (orderID: string): Promise<OrderDto> => {
 
 const deleteOrders = async (): Promise<void> => {
   await OrderModel.deleteMany();
+  // TODO find a way to send deletion events for affected entities
 };
 
 const getPersonWithRetry = retryDecorator(contactService.getPerson, {
@@ -89,9 +95,15 @@ const createOrder = async (inputOrder: InputOrderDto): Promise<OrderDto> => {
     };
     const storedOrder = (await OrderModel.create(orderData)).toObject();
 
+    const orderID = storedOrder._id.toString();
+    // no await on purpose
+    kafkaService.sendOrderCreatedEvent(orderID).catch((error: Error) => {
+      console.error('Error sending order created event', error);
+    });
+
     return {
       ...storedOrder,
-      orderID: storedOrder._id.toString(),
+      orderID,
       orderDate: storedOrder.createdAt!.toISOString().split('T')[0],
       items: storedOrder.items.map((item) => ({
         ...item,
@@ -123,6 +135,11 @@ const updateOrder = async (orderID: string, inputOrder: UpdateOrderDto): Promise
   if (!updatedOrder) {
     throw new NotFoundError(orderID);
   }
+  // no await on purpose
+  kafkaService.sendOrderUpdatedEvent(orderID).catch((error: Error) => {
+    console.error('Error sending order updated event', error);
+  });
+
   return {
     ...updatedOrder,
     orderID: updatedOrder._id.toString(),

@@ -46,6 +46,7 @@ services:
     environment:
       - CONTACT_SERVICE_URL=http://contact-service:8080
       - MONGO_URL=mongodb://mongodb:27017/order-service
+      - KAFKA_BROKER_URL=kafka:9092
     ports:
       - 8081:8080
     depends_on:

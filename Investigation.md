@@ -1,7 +1,14 @@
 
 
-Subscribe to all topics:
+Subscribe to contact related topics:
+```bash
 ./kafka.sh kafka-console-consumer --whitelist 'personevents-created|personevents-changed|personevents-deleted'  --from-beginning
+```
+
+Subscribe to order related topics:
+```bash
+./kafka.sh kafka-console-consumer --whitelist 'orderevents'  --from-beginning
+```
 
 
 ### Findouts:
@@ -43,7 +50,7 @@ Those are not normalized and have full props of Person, including ID.
 [x] error handling
 [x] latency handling
 [x] include new service in docker compose
-[ ] publish own events to kafka on create, update, delete
+[x] publish own events to kafka on create, update, delete
 [ ] subscribe to contact events from kafka streams, dummy handlers
 
 

@@ -41,17 +41,17 @@ Order relates to Person via soldTo, billTo, shipTo.
 Those are not normalized and have full props of Person, including ID.
 
 
-#### TODOS:
-[x] Learn existing solution
-[x] Test contract-service api
-[x] bootstrap order service, setup TS, add express server
-[x] add mongo connection and mongoose schema
-[x] complete api crud logic up to the db
-[x] error handling
-[x] latency handling
-[x] include new service in docker compose
-[x] publish own events to kafka on create, update, delete
-[ ] subscribe to contact events from kafka streams, dummy handlers
+#### General TODOS:
+- [x] Learn existing solution
+- [x] Test contract-service api
+- [x] bootstrap order service, setup TS, add express server
+- [x] add mongo connection and mongoose schema
+- [x] complete api crud logic up to the db
+- [x] error handling
+- [x] latency handling
+- [x] include new service in docker compose
+- [x] publish own events to kafka on create, update, delete
+- [x] subscribe to contact events from kafka streams, dummy handlers
 
 
 
@@ -87,3 +87,39 @@ I would recommend the following test suits:
 * Unit tests for domain layer while mocking services and db - to check business logic
 * No tests for db and services - they should be kept thin and simple
 * Integration tests from api level (supertest with given express app instance) - to check full flow. Mock only 3rd party http calls, i.e. services layer. Use mongodb-memory-server for db.
+
+
+### Task 3.
+
+From the description it looks like storing a snapshot of the person in the order was wrong idea.
+Looks like we actually want to update person details in created order. A bit conterintuitive for me and violates typical business needs, but let's follow along.
+
+
+In order to achieve that, we should:
+* store only personid in the order
+* store person object in separate persons collection
+* subscribe to person events and update persons in persons collection
+
+Seq diagramm suggests that we should update only persons that are related to the orders.
+Meaning NOT to keep the full replication of persons db in the orders db.
+
+Questions:
+ 1. how to react on person.deleted event?  
+  Options:
+    * do nothing, skip handling
+    * mark person as deleted in persons collection
+    
+    Decision: do not handle
+ 2. how to handle person.created event?  
+   Options:
+    * do nothing, skip handling
+    * create person in persons collection
+    
+    Decision: do not handle
+
+#### TODO task 3:
+- [] change mongo db schema to store only person id in the order
+- [] create persons collection
+- [] on order creation, lookup person and store in persons collection
+- [] on person update event from kafka, update persons in persons collection
+  

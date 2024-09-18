@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 import { zodiosApp } from '@zodios/express';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
-import config from '../config';
+import config from '../../config';
 
 import ordersRouter from './v1/order';
 
@@ -14,7 +14,7 @@ const createApp = () => {
   app.use(ordersRouter);
 
   // openapi docs
-  const openApiSpecPath = path.join(__dirname, '../../order_service_openapi.yaml');
+  const openApiSpecPath = path.join(__dirname, '../../../order_service_openapi.yaml');
   const openApiSpec = YAML.load(openApiSpecPath);
 
   // @ts-expect-error - openApiSpec is not compatible with the type expected by swaggerUi

@@ -1,7 +1,7 @@
 // contains business logic related to orders
 import { retryDecorator } from 'ts-retry-promise';
 import OrderModel from '../models/order';
-import { InputOrderDto, OrderDto, PersonDto, UpdateOrderDto } from '../api/v1/dto';
+import { InputOrderDto, OrderDto, PersonDto, UpdateOrderDto } from '../api/http/v1/dto';
 import contactService from '../services/contactService';
 import { NotFoundError } from '../errors';
 import * as kafkaService from '../services/kafkaService';

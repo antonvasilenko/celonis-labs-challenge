@@ -1,5 +1,5 @@
-import { Kafka } from 'kafkajs';
-import { CloudEvent, CloudEventV1 } from 'cloudevents';
+import { EachMessagePayload, Kafka } from 'kafkajs';
+import { CloudEvent } from 'cloudevents';
 import config from '../config';
 
 const kafka = new Kafka({
@@ -7,15 +7,52 @@ const kafka = new Kafka({
   brokers: [config.kafka.brokerUrl],
 });
 
-export const producer = kafka.producer();
+const producer = kafka.producer();
+const consumer = kafka.consumer({ groupId: 'order-service' });
 
 export const connectProducer = async () => {
   await producer.connect();
   console.log('Connected to Kafka producer');
 };
 
+export const connectConsumer = async () => {
+  await consumer.connect();
+  await consumer.subscribe({ topic: 'personevents-changed', fromBeginning: true });
+
+  await consumer.run({
+    eachMessage: async ({ message, topic }: EachMessagePayload) => {
+      const value = message.value?.toString();
+      if (value) {
+        try {
+          // Parse the Kafka message as JSON
+          const parsedValue = JSON.parse(value);
+          console.log(`Received message from topic ${topic}:`, parsedValue);
+
+          // Create a CloudEvent from the parsed JSON
+          const event = new CloudEvent({
+            id: parsedValue.id,
+            type: parsedValue.type,
+            source: parsedValue.source,
+            specversion: parsedValue.specversion,
+            datacontenttype: parsedValue.datacontenttype,
+            data: parsedValue.data,
+            ...(parsedValue.time && { time: parsedValue.time }), // Include time if it's present
+          });
+
+          // TODO add handler here
+        } catch (error) {
+          console.error('Error processing message:', error);
+        }
+      }
+    },
+  });
+};
 export const disconnectProducer = async () => {
   await producer.disconnect();
+};
+
+export const disconnectConsumer = async () => {
+  await consumer.disconnect();
 };
 
 // ?? what should be there

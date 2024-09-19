@@ -1,6 +1,7 @@
 import { EachMessagePayload, Kafka } from 'kafkajs';
 import { CloudEvent } from 'cloudevents';
 import config from '../config';
+import { z } from 'zod';
 
 const kafka = new Kafka({
   clientId: 'order-service',
@@ -15,7 +16,17 @@ export const connectProducer = async () => {
   console.log('Connected to Kafka producer');
 };
 
-export const connectConsumer = async () => {
+const cloudEventSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  source: z.string(),
+  specversion: z.string(),
+  datacontenttype: z.string(),
+  data: z.unknown(),
+  time: z.string().optional(),
+});
+
+export const connectConsumer = async (handler: <T>(ev: CloudEvent<T>) => Promise<void>) => {
   await consumer.connect();
   await consumer.subscribe({ topic: 'personevents-changed', fromBeginning: true });
 
@@ -29,16 +40,8 @@ export const connectConsumer = async () => {
           console.log(`Received message from topic ${topic}:`, parsedValue);
 
           // Create a CloudEvent from the parsed JSON
-          const event = new CloudEvent({
-            id: parsedValue.id,
-            type: parsedValue.type,
-            source: parsedValue.source,
-            specversion: parsedValue.specversion,
-            datacontenttype: parsedValue.datacontenttype,
-            data: parsedValue.data,
-            ...(parsedValue.time && { time: parsedValue.time }), // Include time if it's present
-          });
-
+          const event = new CloudEvent(cloudEventSchema.parse(parsedValue));
+          await handler(event);
           // TODO add handler here
         } catch (error) {
           console.error('Error processing message:', error);

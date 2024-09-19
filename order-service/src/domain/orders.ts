@@ -1,6 +1,6 @@
 // contains business logic related to orders
 import { retryDecorator } from 'ts-retry-promise';
-import OrderModel from '../models/order';
+import OrderModel, { OrderPerson } from '../models/order';
 import { InputOrderDto, OrderDto, PersonDto, UpdateOrderDto } from '../api/http/v1/dto';
 import contactService from '../services/contactService';
 import { NotFoundError } from '../errors';
@@ -68,11 +68,22 @@ const getPerson = async (personID: string): Promise<PersonDto> => {
       throw error;
     }
     console.log('Error in getPerson', error);
-    // if TimeoutError
-    // 2. in-place retry
+    // if TimeoutError or other error, return a partial person
     return {
       id: personID,
     };
+  }
+};
+
+const withPerson = async (
+  personId: string,
+  callback: (person: PersonDto) => Promise<void>,
+): Promise<void> => {
+  try {
+    const person = await getPersonWithRetry(personId);
+    await callback(person);
+  } catch (error) {
+    console.warn('failed to get person', error);
   }
 };
 
@@ -147,6 +158,45 @@ const updateOrder = async (orderID: string, inputOrder: UpdateOrderDto): Promise
   };
 };
 
+const updatePersonInOrders = async (personId: string): Promise<void> => {
+  const relevantOrders = await OrderModel.countDocuments({
+    $or: [{ 'soldTo.id': personId }, { 'billTo.id': personId }, { 'shipTo.id': personId }],
+  });
+
+  if (relevantOrders === 0) {
+    return;
+  }
+
+  await withPerson(personId, async (person) => {
+    const orderPerson: OrderPerson = {
+      id: person.id,
+      firstName: person.firstName,
+      lastName: person.lastName,
+      streetAddress: person.streetAddress,
+      houseNumber: person.houseNumber,
+      zip: person.zip,
+      city: person.city,
+      country: person.country,
+      extensionFields: person.extensionFields,
+    };
+    const res1 = await OrderModel.updateMany(
+      { 'soldTo.id': personId },
+      { $set: { soldTo: orderPerson } },
+    );
+    const res2 = await OrderModel.updateMany(
+      { 'billTo.id': personId },
+      { $set: { billTo: orderPerson } },
+    );
+    const res3 = await OrderModel.updateMany(
+      { 'shipTo.id': personId },
+      { $set: { shipTo: orderPerson } },
+    );
+    console.log(
+      `Person with id ${personId} updated in ${res1.modifiedCount + res2.modifiedCount + res3.modifiedCount} orders`,
+    );
+  });
+};
+
 export default {
   getOrders,
   getOrder,
@@ -154,4 +204,5 @@ export default {
   deleteOrder,
   deleteOrders,
   updateOrder,
+  updatePersonInOrders,
 };

@@ -34,6 +34,7 @@ export interface Order extends Document<Types.ObjectId> {
 
 const OrderPersonSchema: Schema = new Schema<OrderPerson>(
   {
+    id: { type: String },
     firstName: { type: String },
     lastName: { type: String },
     streetAddress: { type: String },
@@ -43,7 +44,7 @@ const OrderPersonSchema: Schema = new Schema<OrderPerson>(
     country: { type: String },
     extensionFields: { type: Schema.Types.Mixed },
   },
-  { _id: false, id: false },
+  { _id: false, id: true },
 );
 
 const OrderItemSchema: Schema = new Schema<OrderItem>(
@@ -70,6 +71,11 @@ const OrderSchema = new Schema<Order>(
   },
   { timestamps: true },
 );
+
+// add indices for fields soldTo.id, billTo.id, shipTo.id, skill null values
+OrderSchema.index({ 'soldTo.personId': 1 });
+OrderSchema.index({ 'billTo.personId': 1 });
+OrderSchema.index({ 'shipTo.personId': 1 });
 
 const Order = mongoose.model<Order>('Order', OrderSchema, 'orders');
 export default Order;

@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 const PersonDtoSchema = z
   .object({
-    id: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     city: z.string(),
@@ -12,7 +11,8 @@ const PersonDtoSchema = z
     zip: z.string(),
     extensionFields: z.object({}).partial().passthrough(),
   })
-  .partial();
+  .partial()
+  .merge(z.object({ id: z.string() }));
 
 const OrderItemDtoSchema = z
   .object({

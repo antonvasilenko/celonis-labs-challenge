@@ -2,6 +2,7 @@ import createApp from './api/http/server';
 import connectDb from './db';
 import * as kafkaService from './services/kafkaService';
 import config from './config';
+import queueHandler from './api/queue';
 
 connectDb()
   .then(() => kafkaService.connectProducer())
@@ -11,18 +12,18 @@ connectDb()
     });
   })
   // connet consumer
-  .then(() => kafkaService.connectConsumer())
+  .then(() => kafkaService.connectConsumer(queueHandler))
   .catch((error) => {
     console.error('Error starting Order Service', error);
     throw error;
   });
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-process.on('SIGINT', async () => {
+const gracefulShutdown = async () => {
   console.log('Shutting down Order Service');
-  await kafkaService.disconnectConsumer();
-  await delay(200);
-  await kafkaService.disconnectProducer();
+
+  await Promise.all([kafkaService.disconnectConsumer(), kafkaService.disconnectProducer()]);
   process.exit(0);
-});
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);

@@ -1,9 +1,9 @@
 import { makeApi } from '@zodios/core';
 import { z } from 'zod';
 import { zodiosRouter } from '@zodios/express';
-import orderDomain from '../../domain/orders';
+import orderDomain from '../../../domain/orders';
 import { dto } from './dto';
-import { NotFoundError } from '../../errors';
+import { NotFoundError } from '../../../errors';
 
 export const ordersApi = makeApi([
   {
